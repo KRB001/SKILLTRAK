@@ -1,15 +1,8 @@
-# SKILLTRAK v0.0.2
+# SKILLTRAK v0.0.3
 
 import psycopg2
-from math import floor
 from dbutil import *
-
-# useful ANSI codes
-RESET = "\033[0m"
-RED = "\033[31m"
-
-# no magic numbers
-MINUTES = 60
+from valsutil import *
 
 
 
@@ -34,40 +27,12 @@ print("▄▖▖▖▄▖▖ ▖ ▄▖▄▖▄▖▖▖\n▚ ▙▘▐ ▌ ▌
 print("\n")
 
 # query for all skills in db
-skills = fetch_skills(db)
+skills = fetch_skills_formatted(db)
 
 print("╔═══════════════════════════════════════════════════╗")
 
 for skill in skills:
-    # string builder
-    skill_string = "║ "
-    skill_string += skill[1]
-    for i in range(15 - len(skill[1])):
-        skill_string += " "
-    skill_string += " ["
-
-    # progress bar builder
-    skill_progress = floor((skill[2] / (MINUTES * (1 + skill[4]))) * 20)
-    for i in range(skill_progress):
-        skill_string += "*"
-    for i in range(20 - skill_progress):
-        skill_string += " "
-
-    # pad level marker
-    skill_string += "] LVL"
-    if(skill[3] < 10):
-        skill_string += "0"
-    skill_string += str(skill[3])
-
-    # prestige bar builder
-    for i in range(skill[4]):
-        skill_string += "✦"
-    for i in range(5 - skill[4]):
-        skill_string += " "
-
-    skill_string += " ║"
-
-    print(skill_string)
+    print(skill)
 
 print("╚═══════════════════════════════════════════════════╝")
 
