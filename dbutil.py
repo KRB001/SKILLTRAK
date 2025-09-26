@@ -15,8 +15,11 @@ def fetch_skills_formatted(db):
 
     for skill in skills_raw:
         # string builder
-        skill_string = "║ "
+        skill_string = "║ ["
+        skill_string += str(skill[0])
+        skill_string += "]\t"
         skill_string += skill[1]
+        
         for i in range(15 - len(skill[1])):
             skill_string += " "
         skill_string += " ["
@@ -35,10 +38,12 @@ def fetch_skills_formatted(db):
         skill_string += str(skill[3])
 
         # prestige bar builder
+        skill_string += BRIGHT_YELLOW
         for i in range(skill[4]):
             skill_string += "✦"
         for i in range(5 - skill[4]):
             skill_string += " "
+        skill_string += RESET
 
         skill_string += " ║"
 

@@ -1,10 +1,8 @@
-# SKILLTRAK v0.0.3
+# SKILLTRAK v0.0.4
 
 import psycopg2
 from dbutil import *
 from valsutil import *
-
-
 
 # clear terminal window
 for i in range(20):
@@ -26,15 +24,29 @@ print("\n\n\n")
 print("▄▖▖▖▄▖▖ ▖ ▄▖▄▖▄▖▖▖\n▚ ▙▘▐ ▌ ▌ ▐ ▙▘▌▌▙▘\n▄▌▌▌▟▖▙▖▙▖▐ ▌▌▛▌▌▌")
 print("\n")
 
-# query for all skills in db
-skills = fetch_skills_formatted(db)
+user_in = ""
 
-print("╔═══════════════════════════════════════════════════╗")
+# dialogue loop
+while(user_in.lower() != "q" and user_in.lower() != "quit"):
 
-for skill in skills:
-    print(skill)
+    # query for all skills in db
+    # refreshes every command
+    skills = fetch_skills_formatted(db)
 
-print("╚═══════════════════════════════════════════════════╝")
+    print("YOUR SKILLS:")
+    print("╔═════════════════════════════════════════════════════════╗")
+
+    for skill in skills:
+        print(skill)
+
+    print("╚═════════════════════════════════════════════════════════╝")
+
+
+    user_in = input(" > ")
+    # clear terminal window
+    for i in range(20):
+        print("\n")
+
 
 
 # close connection to db
