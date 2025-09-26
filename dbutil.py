@@ -9,6 +9,15 @@ def fetch_skills(db):
                 """)
         return cur.fetchall()
     
+def add_skill(db, skill_name):
+    with db.cursor() as cur:
+        cur.execute("""
+                    INSERT INTO skills (name, mins, lvl, prestige)
+                    VALUES ('{name}', 0, 0, 0)
+                    """.format(name=skill_name))
+        db.commit()
+        return
+    
 def fetch_skills_formatted(db):
     skills_raw = fetch_skills(db)
     skills = []
