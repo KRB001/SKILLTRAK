@@ -29,22 +29,39 @@ user_in = ""
 # dialogue loop
 while(user_in.lower() != "q" and user_in.lower() != "quit"):
 
-    # all valid commands have keywords >3 chars long (plus space)
-    if(len(user_in) > 4):
-        # add a new skill
-        if(user_in[0:4] == "add "):
-            add_in = user_in.split(" ")
-            # only 1 argument is valid
-            if(len(add_in) == 2):
-                try:
-                    add_skill(db, add_in[1])
-                    print("Added new skill " + add_in[1] + "!")
-                # add raises an exception (can only happen if name violates uniqueness condition)
-                except NameError as e:
-                    print(RED + str(e) + RESET)
-            else:
-                print(RED + "Invalid number of arguments for command add!" + RESET)
-    # all other invalid commands
+    # remove a skill
+    if(user_in[0:3] == "rm " or user_in[0:7] == "remove "):
+        rm_in = user_in.split(" ")
+        # only 1 argument is valid
+        if(len(rm_in) == 2):
+            # call remove skill injection function from dbutil
+            try:
+                remove_skill(db, rm_in[1])
+                print("Removed skill " + rm_in[1] + "!")
+            # raised if query returns no rows deleted
+            except NameError as e:
+                print(RED + str(e) + RESET)
+        # num of args other than 2
+        else:
+            print(RED + "Invalid number of arguments for command rm!" + RESET)
+    
+    # add a new skill
+    elif(user_in[0:4] == "add "):
+        add_in = user_in.split(" ")
+        # only 1 argument is valid
+        if(len(add_in) == 2):
+            # call add skill injection function from dbutil
+            try:
+                add_skill(db, add_in[1])
+                print("Added new skill " + add_in[1] + "!")
+            # add raises an exception (can only happen if name violates uniqueness condition)
+            except NameError as e:
+                print(RED + str(e) + RESET)
+        # num of args other than 2
+        else:
+            print(RED + "Invalid number of arguments for command add!" + RESET)
+        
+
     else:
         if(user_in != ""):
             print(RED + "Invalid command!" + RESET)

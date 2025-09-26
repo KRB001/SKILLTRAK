@@ -21,6 +21,18 @@ def add_skill(db, skill_name):
             db.rollback()
             raise NameError("A skill named {name} already exists!".format(name=skill_name))
         return
+
+def remove_skill(db, skill_name):
+    with db.cursor() as cur:
+        cur.execute("""
+                    DELETE FROM skills WHERE
+                    name='{name}';
+                    """.format(name=skill_name))
+        db.commit()
+        if(cur.statusmessage == "DELETE 0"):
+            raise NameError("No skill named {name} could be found!".format(name=skill_name))
+        return
+        
     
 def fetch_skills_formatted(db):
     skills_raw = fetch_skills(db)
