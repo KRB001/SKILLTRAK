@@ -11,11 +11,15 @@ def fetch_skills(db):
     
 def add_skill(db, skill_name):
     with db.cursor() as cur:
-        cur.execute("""
-                    INSERT INTO skills (name, mins, lvl, prestige)
-                    VALUES ('{name}', 0, 0, 0)
-                    """.format(name=skill_name))
-        db.commit()
+        try:
+            cur.execute("""
+                        INSERT INTO skills (name, mins, lvl, prestige)
+                        VALUES ('{name}', 0, 0, 0);
+                        """.format(name=skill_name))
+            db.commit()
+        except:
+            db.rollback()
+            raise NameError("A skill named {name} already exists!".format(name=skill_name))
         return
     
 def fetch_skills_formatted(db):

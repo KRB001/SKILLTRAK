@@ -1,4 +1,4 @@
-# SKILLTRAK v0.1.0
+# SKILLTRAK v0.1.1
 
 import psycopg2
 from dbutil import *
@@ -36,8 +36,12 @@ while(user_in.lower() != "q" and user_in.lower() != "quit"):
             add_in = user_in.split(" ")
             # only 1 argument is valid
             if(len(add_in) == 2):
-                add_skill(db, add_in[1])
-                print("Added new skill " + add_in[1] + "!")
+                try:
+                    add_skill(db, add_in[1])
+                    print("Added new skill " + add_in[1] + "!")
+                # add raises an exception (can only happen if name violates uniqueness condition)
+                except NameError as e:
+                    print(RED + str(e) + RESET)
             else:
                 print(RED + "Invalid number of arguments for command add!" + RESET)
     # all other invalid commands
