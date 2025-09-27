@@ -8,6 +8,14 @@ def fetch_skills(db):
                 SELECT * FROM skills;
                 """)
         return cur.fetchall()
+
+def fetch_skill_by_index(db, ndx):
+    skills = fetch_skills(db)
+    try:
+        skill = skills[ndx]
+        return skill
+    except:
+        raise IndexError
     
 def add_skill(db, skill_name):
     with db.cursor() as cur:
