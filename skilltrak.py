@@ -1,4 +1,4 @@
-# SKILLTRAK v0.1.1
+# SKILLTRAK v0.1.2
 
 import psycopg2
 from dbutil import *
@@ -70,7 +70,7 @@ while(user_in.lower() != "q" and user_in.lower() != "quit"):
     # refreshes every command
     skills = fetch_skills_formatted(db)
 
-    print("YOUR SKILLS:")
+    print("  YOUR SKILLS:")
     print("╔═════════════════════════════════════════════════════════╗")
 
     for skill in skills:

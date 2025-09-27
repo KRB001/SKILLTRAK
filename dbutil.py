@@ -37,26 +37,27 @@ def remove_skill(db, skill_name):
 def fetch_skills_formatted(db):
     skills_raw = fetch_skills(db)
     skills = []
+    ndx = 0
 
     for skill in skills_raw:
         # string builder
         skill_string = "║ ["
-        skill_string += str(skill[0])
+        skill_string += str(ndx)
         skill_string += "]\t"
         skill_string += skill[1]
         
-        for i in range(15 - len(skill[1])):
+        for i in range(MAX_NAME_LEN - len(skill[1])):
             skill_string += " "
         skill_string += " ["
 
         # progress bar builder
-        skill_progress = floor((skill[2] / (MINUTES * (1 + skill[4]))) * 20)
+        skill_progress = floor((skill[2] / (MINUTES * (1 + skill[4]))) * BAR_LEN)
         for i in range(skill_progress):
             skill_string += "*"
-        for i in range(20 - skill_progress):
+        for i in range(BAR_LEN - skill_progress):
             skill_string += " "
 
-        # pad level marker
+        # pad level marker if <10
         skill_string += "] LVL"
         if(skill[3] < 10):
             skill_string += "0"
@@ -73,5 +74,7 @@ def fetch_skills_formatted(db):
         skill_string += " ║"
 
         skills.append(skill_string)
+
+        ndx += 1
 
     return skills
