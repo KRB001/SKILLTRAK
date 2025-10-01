@@ -2,6 +2,8 @@ import psycopg2
 from math import floor
 from valsutil import *
 
+# FETCHES
+
 def fetch_skills(db):
     with db.cursor() as cur:
         cur.execute("""
@@ -17,6 +19,8 @@ def fetch_skill_by_index(db, ndx):
     except:
         raise IndexError
     
+# ADD FUNCTIONS
+
 def add_skill(db, skill_name):
     with db.cursor() as cur:
         try:
@@ -30,6 +34,18 @@ def add_skill(db, skill_name):
             raise NameError("A skill named {name} already exists!".format(name=skill_name))
         return
 
+def log(db, skill_name, mins):
+    with db.cursor() as cur:
+        cur.execute("""
+                        SELECT id FROM skills
+                        WHERE name = '{name}';
+                        """.format(name=skill_name))
+        if cur.fetchone() == None:
+            raise NameError("A skill named {name} does not exist!".format(name=skill_name))
+        return cur.fetchone()
+
+# REMOVE FUNCTIONS
+
 def remove_skill(db, skill_name):
     with db.cursor() as cur:
         cur.execute("""
@@ -42,6 +58,8 @@ def remove_skill(db, skill_name):
         return
         
     
+# STRING FORMATTED FETCHES
+
 def fetch_skills_formatted(db):
     skills_raw = fetch_skills(db)
     skills = []
