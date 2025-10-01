@@ -1,4 +1,4 @@
-# SKILLTRAK v0.2.0
+# SKILLTRAK v0.2.1
 
 import psycopg2
 from dbutil import *
@@ -63,18 +63,23 @@ while(user_in.lower() != "q" and user_in.lower() != "quit"):
         
     elif(user_in[0:4] == "log "):
         log_in = user_in.split(" ")
+        success_flag = False
         # 2 arguments valid
         if(len(log_in) == 3):
             mins = log_in[1]
             skill = log_in[2]
             try:
                 skill = int(skill)
-                skill = fetch_skill_by_index(db, skill)
-                print(skill[1])
+                skill = fetch_skill_by_index(db, skill)[1]
+                success_flag = True
             except (TypeError, ValueError):
-                print(skill)
+                success_flag = True
             except IndexError:
                 print(RED + "Index " + str(skill) + " is out of range!" + RESET)
+            
+            if(success_flag):
+                print("Successfully logged " + mins + " minutes of time for skill [" + skill + "]")
+
         else:
             print(RED + "Invalid number of arguments for command log!" + RESET)
 
