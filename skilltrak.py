@@ -1,4 +1,4 @@
-# SKILLTRAK v0.2.2
+# SKILLTRAK v0.2.3
 
 import psycopg2
 from dbutil import *
@@ -81,7 +81,7 @@ while(user_in.lower() != "q" and user_in.lower() != "quit"):
                 try:
                     log(db, skill, mins)
                     print("Successfully logged " + mins + " minutes of time for skill [" + skill + "]")
-                except NameError as e:
+                except (NameError, RuntimeError) as e:
                     print(RED + str(e) + RESET)
 
         else:

@@ -1,6 +1,7 @@
 import psycopg2
 from math import floor
 from valsutil import *
+from datetime import datetime
 
 # FETCHES
 
@@ -36,13 +37,29 @@ def add_skill(db, skill_name):
 
 def log(db, skill_name, mins):
     with db.cursor() as cur:
+
         cur.execute("""
                         SELECT id FROM skills
                         WHERE name = '{name}';
                         """.format(name=skill_name))
-        if cur.fetchone() == None:
+        
+        skill_id = cur.fetchone()[0]
+
+        if skill_id == None:
             raise NameError("A skill named {name} does not exist!".format(name=skill_name))
-        return cur.fetchone()
+        
+        curr_datetime = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S+00")
+
+        try:
+            cur.execute("""
+                         INSERT INTO entries(date, mins, skillID) 
+                         VALUES ('{date}', {mins}, {skill_id});""".format(date=curr_datetime,mins=mins,skill_id=skill_id))
+            db.commit()
+        except:
+            db.rollback()
+            raise RuntimeError("Was unable to log {mins} minutes for skill [{skill}]".format(mins=mins,skill=skill_name))
+
+
 
 # REMOVE FUNCTIONS
 
