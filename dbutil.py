@@ -27,8 +27,10 @@ def fetch_skill_id_by_name(db, skill_name):
                         SELECT id FROM skills
                         WHERE name = '{name}';
                         """.format(name=skill_name))
-        
-        return cur.fetchone()[0]
+        try:
+            return cur.fetchone()[0]
+        except:
+            return None
         
     
 ### ADD FUNCTIONS
@@ -144,6 +146,8 @@ def fetch_skills_formatted(db):
             skill_string += " "
         skill_string += " ["
 
+        skill_color = LEVEL_COLORS[floor(skill[3] / 20)]
+
         # progress bar builder
         skill_progress = floor(((skill[2] % (60 * (skill[4] + 1))) / (MINUTES * (1 + skill[4]))) * BAR_LEN)
         # I will explain the line above cuz it looks kinda stupid :))
@@ -151,16 +155,24 @@ def fetch_skills_formatted(db):
         # 1. getting the number of minutes (skill[2])
         # 2. moduloing that by 60 * prestige+1 (skill[4]) to get the 'current' level progress minus all levels that were passed
         # 3. dividing that by 60 (MINUTES) * prestige+1 * BAR_LEN to get the number of stars to go in the progress bar
+        
+        skill_string += skill_color
+
         for i in range(skill_progress):
             skill_string += "*"
         for i in range(BAR_LEN - skill_progress):
             skill_string += " "
 
+        skill_string += RESET
+
         # pad level marker if <10
         skill_string += "] LVL"
+
+        skill_string += skill_color
         if(skill[3] < 10):
             skill_string += "0"
         skill_string += str(skill[3])
+        skill_string += RESET
 
         # prestige bar builder
         skill_string += BRIGHT_YELLOW
