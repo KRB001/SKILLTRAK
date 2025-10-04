@@ -3,7 +3,7 @@ from math import floor
 from valsutil import *
 from datetime import datetime
 
-# FETCHES
+### FETCHES
 
 def fetch_skills(db):
     with db.cursor() as cur:
@@ -20,7 +20,7 @@ def fetch_skill_by_index(db, ndx):
     except:
         raise IndexError
     
-# ADD FUNCTIONS
+### ADD FUNCTIONS
 
 def add_skill(db, skill_name):
     with db.cursor() as cur:
@@ -38,6 +38,7 @@ def add_skill(db, skill_name):
 def log(db, skill_name, mins):
     with db.cursor() as cur:
 
+        # fetch skill id and datetime block
         cur.execute("""
                         SELECT id FROM skills
                         WHERE name = '{name}';
@@ -50,18 +51,55 @@ def log(db, skill_name, mins):
         
         curr_datetime = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S+00")
 
+        # log in entries table block
+
         try:
             cur.execute("""
                          INSERT INTO entries(date, mins, skillID) 
-                         VALUES ('{date}', {mins}, {skill_id});""".format(date=curr_datetime,mins=mins,skill_id=skill_id))
+                         VALUES ('{date}', {mins}, {skill_id});
+                        """.format(date=curr_datetime,mins=mins,skill_id=skill_id))
             db.commit()
         except:
             db.rollback()
             raise RuntimeError("Was unable to log {mins} minutes for skill [{skill}]".format(mins=mins,skill=skill_name))
+        
+        # level logic block
+
+        try:
+            cur.execute("""
+                        SELECT mins,lvl,prestige FROM skills
+                        WHERE name = '{name}';
+                        """.format(name=skill_name))
+            
+            curr_dat = cur.fetchone()
+            curr_mins = int(curr_dat[0])
+            curr_lvl = int(curr_dat[1])
+            curr_pres = int(curr_dat[2])
+
+            new_mins = curr_mins + int(mins)
+
+            new_lvl = floor(new_mins / (60 * (curr_pres + 1)))
+
+            lvl_flag = False
+
+            if new_lvl > curr_lvl:
+                lvl_flag = True
 
 
+            #TODO: make pres change
+            cur.execute("""
+                        UPDATE skills SET 
+                        mins={new_mins},lvl={new_lvl},prestige={new_pres} 
+                        WHERE name = '{name}';
+                        """.format(new_mins=new_mins,new_lvl=new_lvl,new_pres=curr_pres,name=skill_name))
+            db.commit()
+        except:
+            db.rollback()
+            raise RuntimeError("Was able to log an entry of {mins} minutes, " \
+            "but was unable to add to total for [{skill}]".format(mins=mins,skill=skill_name))
 
-# REMOVE FUNCTIONS
+
+### REMOVE FUNCTIONS
 
 def remove_skill(db, skill_name):
     with db.cursor() as cur:
@@ -75,7 +113,7 @@ def remove_skill(db, skill_name):
         return
         
     
-# STRING FORMATTED FETCHES
+### STRING FORMATTED FETCHES
 
 def fetch_skills_formatted(db):
     skills_raw = fetch_skills(db)
@@ -94,7 +132,12 @@ def fetch_skills_formatted(db):
         skill_string += " ["
 
         # progress bar builder
-        skill_progress = floor((skill[2] / (MINUTES * (1 + skill[4]))) * BAR_LEN)
+        skill_progress = floor(((skill[2] % (60 * (skill[4] + 1))) / (MINUTES * (1 + skill[4]))) * BAR_LEN)
+        # I will explain the line above cuz it looks kinda stupid :))
+        # skill_progress gets the current progress to the next level by:
+        # 1. getting the number of minutes (skill[2])
+        # 2. moduloing that by 60 * prestige+1 (skill[4]) to get the 'current' level progress minus all levels that were passed
+        # 3. dividing that by 60 (MINUTES) * prestige+1 * BAR_LEN to get the number of stars to go in the progress bar
         for i in range(skill_progress):
             skill_string += "*"
         for i in range(BAR_LEN - skill_progress):
