@@ -1,4 +1,4 @@
-# SKILLTRAK v1.0.0
+# SKILLTRAK v1.1.0
 
 import psycopg2
 from dbutil import *

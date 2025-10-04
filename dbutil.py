@@ -8,7 +8,8 @@ from datetime import datetime
 def fetch_skills(db):
     with db.cursor() as cur:
         cur.execute("""
-                SELECT * FROM skills;
+                SELECT * FROM skills
+                ORDER BY mins DESC;
                 """)
         return cur.fetchall()
 
@@ -19,6 +20,16 @@ def fetch_skill_by_index(db, ndx):
         return skill
     except:
         raise IndexError
+    
+def fetch_skill_id_by_name(db, skill_name):
+    with db.cursor() as cur:
+        cur.execute("""
+                        SELECT id FROM skills
+                        WHERE name = '{name}';
+                        """.format(name=skill_name))
+        
+        return cur.fetchone()[0]
+        
     
 ### ADD FUNCTIONS
 
@@ -39,12 +50,7 @@ def log(db, skill_name, mins):
     with db.cursor() as cur:
 
         # fetch skill id and datetime block
-        cur.execute("""
-                        SELECT id FROM skills
-                        WHERE name = '{name}';
-                        """.format(name=skill_name))
-        
-        skill_id = cur.fetchone()[0]
+        skill_id = fetch_skill_id_by_name(db, skill_name)
 
         if skill_id == None:
             raise NameError("A skill named {name} does not exist!".format(name=skill_name))
@@ -80,18 +86,21 @@ def log(db, skill_name, mins):
 
             new_lvl = floor(new_mins / (60 * (curr_pres + 1)))
 
-            lvl_flag = False
+            new_pres = curr_pres
+            if new_lvl > 99:
+                new_mins = new_mins % (99 * 60 * (new_pres + 1))
+                new_pres += new_lvl // 99
+                new_lvl = floor(new_mins / (60 * (new_pres + 1)))
+                print("Your prestige for [" + skill_name + "] has increased to [" + str(new_pres) + "] and your level has been reset!")
 
             if new_lvl > curr_lvl:
-                lvl_flag = True
+                print("Your LEVEL for [" + skill_name + "] has increased to [" + str(new_lvl) + "]!")
 
-
-            #TODO: make pres change
             cur.execute("""
                         UPDATE skills SET 
                         mins={new_mins},lvl={new_lvl},prestige={new_pres} 
                         WHERE name = '{name}';
-                        """.format(new_mins=new_mins,new_lvl=new_lvl,new_pres=curr_pres,name=skill_name))
+                        """.format(new_mins=new_mins,new_lvl=new_lvl,new_pres=new_pres,name=skill_name))
             db.commit()
         except:
             db.rollback()
@@ -103,6 +112,10 @@ def log(db, skill_name, mins):
 
 def remove_skill(db, skill_name):
     with db.cursor() as cur:
+        cur.execute("""
+                    DELETE FROM entries WHERE
+                    skillID={skill_id};
+                    """.format(skill_id=int(fetch_skill_id_by_name(db, skill_name))))
         cur.execute("""
                     DELETE FROM skills WHERE
                     name='{name}';
