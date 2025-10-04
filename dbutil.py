@@ -93,10 +93,14 @@ def log(db, skill_name, mins):
                 new_mins = new_mins % (99 * 60 * (new_pres + 1))
                 new_pres += new_lvl // 99
                 new_lvl = floor(new_mins / (60 * (new_pres + 1)))
-                print("Your prestige for [" + skill_name + "] has increased to " + BRIGHT_YELLOW + "[" + str(new_pres) + "]" + RESET + " and your level has been reset!")
+                print(YELLOW + "-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-" + RESET + "\n")
+                print("Your prestige for [" + skill_name + "] has increased to " + BRIGHT_YELLOW + "[" + str(new_pres) + "]" + RESET + " and your level has been reset!\n")
+                print(YELLOW + "-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-" + RESET + "\n")
 
             if new_lvl > curr_lvl:
+                print("" + get_level_color(new_lvl) + ">>>>>>>>" + RESET)
                 print("Your LEVEL for [" + skill_name + "] has increased to " + get_level_color(new_lvl) + "[" + str(new_lvl) + "]!" + RESET)
+                print("" + get_level_color(new_lvl) + ">>>>>>>>\n" + RESET)
 
             cur.execute("""
                         UPDATE skills SET 

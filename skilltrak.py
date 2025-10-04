@@ -1,4 +1,4 @@
-# SKILLTRAK v1.2.1
+# SKILLTRAK v1.2.2
 
 import psycopg2
 from dbutil import *
@@ -21,7 +21,7 @@ print("Connected!")
 
 # main title
 print("\n\n\n")
-print("▄▖▖▖▄▖▖ ▖ ▄▖▄▖▄▖▖▖\n▚ ▙▘▐ ▌ ▌ ▐ ▙▘▌▌▙▘\n▄▌▌▌▟▖▙▖▙▖▐ ▌▌▛▌▌▌")
+print(BRIGHT_YELLOW + "▄▖▖▖▄▖▖ ▖ ▄▖▄▖▄▖▖▖\n" + BRIGHT_RED + "▚ ▙▘▐ ▌ ▌ ▐ ▙▘▌▌▙▘\n" + BRIGHT_PURPLE + "▄▌▌▌▟▖▙▖▙▖▐ ▌▌▛▌▌▌" + RESET)
 print("\n")
 
 user_in = ""
