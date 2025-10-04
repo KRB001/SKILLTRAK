@@ -9,7 +9,7 @@ def fetch_skills(db):
     with db.cursor() as cur:
         cur.execute("""
                 SELECT * FROM skills
-                ORDER BY mins DESC;
+                ORDER BY prestige DESC, mins DESC;
                 """)
         return cur.fetchall()
 
@@ -93,10 +93,10 @@ def log(db, skill_name, mins):
                 new_mins = new_mins % (99 * 60 * (new_pres + 1))
                 new_pres += new_lvl // 99
                 new_lvl = floor(new_mins / (60 * (new_pres + 1)))
-                print("Your prestige for [" + skill_name + "] has increased to [" + str(new_pres) + "] and your level has been reset!")
+                print("Your prestige for [" + skill_name + "] has increased to " + BRIGHT_YELLOW + "[" + str(new_pres) + "]" + RESET + " and your level has been reset!")
 
             if new_lvl > curr_lvl:
-                print("Your LEVEL for [" + skill_name + "] has increased to [" + str(new_lvl) + "]!")
+                print("Your LEVEL for [" + skill_name + "] has increased to " + get_level_color(new_lvl) + "[" + str(new_lvl) + "]!" + RESET)
 
             cur.execute("""
                         UPDATE skills SET 
@@ -146,7 +146,7 @@ def fetch_skills_formatted(db):
             skill_string += " "
         skill_string += " ["
 
-        skill_color = LEVEL_COLORS[floor(skill[3] / 20)]
+        skill_color = get_level_color(skill[3])
 
         # progress bar builder
         skill_progress = floor(((skill[2] % (60 * (skill[4] + 1))) / (MINUTES * (1 + skill[4]))) * BAR_LEN)
@@ -189,3 +189,8 @@ def fetch_skills_formatted(db):
         ndx += 1
 
     return skills
+
+### MISC
+
+def get_level_color(lvl):
+    return LEVEL_COLORS[floor(lvl / 20)]
