@@ -61,27 +61,35 @@ while(user_in.lower() != "q" and user_in.lower() != "quit"):
         else:
             print(RED + "Invalid number of arguments for command add!" + RESET)
         
+    # log time spent on a skill
     elif(user_in[0:4] == "log "):
         log_in = user_in.split(" ")
         success_flag = False
+
         # 2 arguments valid
         if(len(log_in) == 3):
             mins = log_in[1]
             skill = log_in[2]
             try:
+                # try to cast arg to an int (check if user entered an index, not a name)
                 skill = int(skill)
                 skill = fetch_skill_by_index(db, skill)[1]
                 success_flag = True
             except (TypeError, ValueError):
+                # arg was not an index
                 success_flag = True
             except IndexError:
+                # arg was an index, but was out of range (gets thrown by dbutil)
                 print(RED + "Index " + str(skill) + " is out of range!" + RESET)
             
+            # only execute if previous block did not fail
             if(success_flag):
                 try:
+                    # attempt entry into table
                     log(db, skill, mins)
                     print("Successfully logged " + mins + " minutes of time for skill [" + skill + "]")
                 except (NameError, RuntimeError) as e:
+                    # failed (usually name not found)
                     print(RED + str(e) + RESET)
 
         else:
@@ -107,6 +115,11 @@ while(user_in.lower() != "q" and user_in.lower() != "quit"):
     # clear terminal window
     for i in range(20):
         print("\n")
+
+    # title persists
+    print("\n\n\n")
+    print(BRIGHT_YELLOW + "▄▖▖▖▄▖▖ ▖ ▄▖▄▖▄▖▖▖\n" + BRIGHT_RED + "▚ ▙▘▐ ▌ ▌ ▐ ▙▘▌▌▙▘\n" + BRIGHT_PURPLE + "▄▌▌▌▟▖▙▖▙▖▐ ▌▌▛▌▌▌" + RESET)
+    print("\n")
 
 
 

@@ -5,6 +5,7 @@ from datetime import datetime
 
 ### FETCHES
 
+# takes db pointer, returns list of skill records
 def fetch_skills(db):
     with db.cursor() as cur:
         cur.execute("""
@@ -13,6 +14,7 @@ def fetch_skills(db):
                 """)
         return cur.fetchall()
 
+# takes db pointer and index, returns skill record or raises IndexError
 def fetch_skill_by_index(db, ndx):
     skills = fetch_skills(db)
     try:
@@ -21,6 +23,8 @@ def fetch_skill_by_index(db, ndx):
     except:
         raise IndexError
     
+# takes db pointer and skill name, returns skill id for logs foreign key
+# returns None if not found
 def fetch_skill_id_by_name(db, skill_name):
     with db.cursor() as cur:
         cur.execute("""
@@ -33,8 +37,12 @@ def fetch_skill_id_by_name(db, skill_name):
             return None
         
     
+
+
 ### ADD FUNCTIONS
 
+# tries to add new skill with given name
+# raises NameError if UNIQUE constaint violated
 def add_skill(db, skill_name):
     with db.cursor() as cur:
         try:
@@ -48,19 +56,21 @@ def add_skill(db, skill_name):
             raise NameError("A skill named {name} already exists!".format(name=skill_name))
         return
 
+# the big one
+# takes name and minutes, attempts to log
 def log(db, skill_name, mins):
     with db.cursor() as cur:
 
-        # fetch skill id and datetime block
+        # fetch skill id
         skill_id = fetch_skill_id_by_name(db, skill_name)
-
+        # check if skill exists (fetch...by_name will return None if not found)
         if skill_id == None:
             raise NameError("A skill named {name} does not exist!".format(name=skill_name))
         
+        # get current datetime for log
         curr_datetime = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S+00")
 
-        # log in entries table block
-
+        # try to run query to enter log
         try:
             cur.execute("""
                          INSERT INTO entries(date, mins, skillID) 
@@ -68,40 +78,57 @@ def log(db, skill_name, mins):
                         """.format(date=curr_datetime,mins=mins,skill_id=skill_id))
             db.commit()
         except:
+            # was not able to log for whatever reason (general exception)
             db.rollback()
             raise RuntimeError("Was unable to log {mins} minutes for skill [{skill}]".format(mins=mins,skill=skill_name))
         
-        # level logic block
-
+        
+        # leveling/presige logic is done independently
         try:
+            # fetch total minutes for skill, level for skill, and prestige for skill
             cur.execute("""
                         SELECT mins,lvl,prestige FROM skills
                         WHERE name = '{name}';
                         """.format(name=skill_name))
             
+            # assign query result columns to python values
             curr_dat = cur.fetchone()
             curr_mins = int(curr_dat[0])
             curr_lvl = int(curr_dat[1])
             curr_pres = int(curr_dat[2])
 
+            # first calculate new total minutes
             new_mins = curr_mins + int(mins)
 
-            new_lvl = floor(new_mins / (60 * (curr_pres + 1)))
+            # next calculate new total level, floor of new minutes / 60 * prestige
+            # i.e. 1000 minutes on prestige 0 = floor(1000 / (60 * (0 + 1))) = floor(1000 / 60) = floor(16.667) = LVL16
+            new_lvl = floor(new_mins / (MINUTES * (curr_pres + 1)))
 
+            # initialize new prestige at current level
+            # (not explained elsewhere, prestige makes leveling slower but is also cool)
             new_pres = curr_pres
+            # block executes if level calculation has put lvl above 99
             if new_lvl > 99:
+                # reset minutes
                 new_mins = new_mins % (99 * 60 * (new_pres + 1))
+                # increase prestige by appropriate amount
+                # (will never be anything more than 1 unless you log like 10,000 minutes)
+                # ((but whatever edge cases and so on))
                 new_pres += new_lvl // 99
+                # reset level using new prestige calculation
                 new_lvl = floor(new_mins / (60 * (new_pres + 1)))
+                # print a special message in the case of prestige up
                 print(YELLOW + "-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-" + RESET + "\n")
                 print("Your prestige for [" + skill_name + "] has increased to " + BRIGHT_YELLOW + "[" + str(new_pres) + "]" + RESET + " and your level has been reset!\n")
                 print(YELLOW + "-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-*<>*-" + RESET + "\n")
 
+            # print a special message in the case of levelup
             if new_lvl > curr_lvl:
                 print("" + get_level_color(new_lvl) + ">>>>>>>>" + RESET)
                 print("Your LEVEL for [" + skill_name + "] has increased to " + get_level_color(new_lvl) + "[" + str(new_lvl) + "]!" + RESET)
                 print("" + get_level_color(new_lvl) + ">>>>>>>>\n" + RESET)
 
+            # query to update skill record with all the new info
             cur.execute("""
                         UPDATE skills SET 
                         mins={new_mins},lvl={new_lvl},prestige={new_pres} 
@@ -109,6 +136,7 @@ def log(db, skill_name, mins):
                         """.format(new_mins=new_mins,new_lvl=new_lvl,new_pres=new_pres,name=skill_name))
             db.commit()
         except:
+            # uh oh something broke uh oh.....
             db.rollback()
             raise RuntimeError("Was able to log an entry of {mins} minutes, " \
             "but was unable to add to total for [{skill}]".format(mins=mins,skill=skill_name))
@@ -116,8 +144,11 @@ def log(db, skill_name, mins):
 
 ### REMOVE FUNCTIONS
 
+# attempt to remove a skill from the table
 def remove_skill(db, skill_name):
     with db.cursor() as cur:
+        # first delete all dependent log records
+        # (next query will fail if this is not done)
         cur.execute("""
                     DELETE FROM entries WHERE
                     skillID={skill_id};
@@ -127,6 +158,7 @@ def remove_skill(db, skill_name):
                     name='{name}';
                     """.format(name=skill_name))
         db.commit()
+        # delete did not do anything
         if(cur.statusmessage == "DELETE 0"):
             raise NameError("No skill named {name} could be found!".format(name=skill_name))
         return
@@ -134,6 +166,8 @@ def remove_skill(db, skill_name):
     
 ### STRING FORMATTED FETCHES
 
+# uses fetch_skills to build formatted strings
+# these are then printed every menu refresh
 def fetch_skills_formatted(db):
     skills_raw = fetch_skills(db)
     skills = []
@@ -196,5 +230,6 @@ def fetch_skills_formatted(db):
 
 ### MISC
 
+# literally just fetches the right color for a level, only a function cuz this happens a lot
 def get_level_color(lvl):
     return LEVEL_COLORS[floor(lvl / 20)]
